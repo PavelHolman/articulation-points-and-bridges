@@ -30,7 +30,8 @@ class ArticulationsAndBridges {
             : _graph(std::move(graph)) {
     }
 
-    void DFS (const Vertex & v, const Vertex & u) {
+    size_t DFS (const Vertex & v, const Vertex & u) {
+        size_t n_neighbors = 0;
         _low[v] = _in[v] = ++ _timer;
         for (const Vertex & w: _graph[v]) {
             if (! _in.contains(w)) { // Tree edge
@@ -42,10 +43,14 @@ class ArticulationsAndBridges {
                     _articulations.emplace(v);
                 }
                 _low[v] = std::min(_low[v], _low[w]);
+
+                n_neighbors++;
             } else if (w != u && _in[w] < _in[v]) { // Backwards edge
                 _low[v] = std::min(_low[v], _in[w]);
             }
         }
+
+        return n_neighbors;
     }
 
 public:
@@ -53,10 +58,9 @@ public:
         ArticulationsAndBridges ab(graph);
         for (const auto & [v0, _]: graph) {
             if (ab._in.contains(v0)) { continue; }
-            if (ab._graph[v0].size() > 1) { // Root
+            if (ab.DFS(v0, v0) > 1) { // Root
                 ab._articulations.emplace(v0);
             }
-            ab.DFS(v0, v0);
         }
         return {ab._articulations, ab._bridges};
     }
